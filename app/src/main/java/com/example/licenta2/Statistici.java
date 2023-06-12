@@ -25,8 +25,8 @@ public class Statistici extends AppCompatActivity {
         intrebariTotale = findViewById(R.id.textViewIntrebareTotal);
         acurateteIntrebari = findViewById(R.id.textViewAcuratete);
 
-        corect = activ.raspunsuriCorecte;
-        total = activ.raspunsuriTotale;
+        corect = activ.correctResponses;
+        total = activ.totalAnswers;
 
         numarCorect = numarCorect+corect;
         numarTotal = numarTotal+total;

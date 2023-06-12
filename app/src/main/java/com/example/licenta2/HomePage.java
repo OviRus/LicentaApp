@@ -20,8 +20,7 @@ import com.google.android.gms.tasks.Task;
 
 public class HomePage extends AppCompatActivity {
 
-    private Button buttonJoaca, buttonProvocare, buttonInstructiuni, buttonStatistici,
-            buttonClasament, buttonAlteJocuri;
+    private Button buttonJoaca, buttonProvocare, buttonInstructiuni, buttonStatistici, buttonAlteJocuri;
     TextView textViewLogout;
 
     GoogleSignInOptions gso;
@@ -33,40 +32,36 @@ public class HomePage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
 
+        copyDatabase();
         buttonJoaca = findViewById(R.id.buttonJoaca);
         buttonProvocare = findViewById(R.id.buttonAlteJocuri);
 
         buttonInstructiuni = findViewById(R.id.buttonInstructiuni);
         buttonStatistici = findViewById(R.id.buttonStatistici);
-        buttonClasament = findViewById(R.id.buttonClasament);
-        buttonAlteJocuri = findViewById(R.id.buttonAlteJocuri);
 
+        buttonAlteJocuri = findViewById(R.id.buttonAlteJocuri);
+        textViewLogout = findViewById(R.id.textViewLogout);
 
         gso  = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
         gsc = GoogleSignIn.getClient(this, gso);
 
+
+        BazaDate bazaDeDate = new BazaDate(HomePage.this);
+
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+        if (account != null) {
+            String userEmail = account.getEmail();
+            bazaDeDate.saveUserEmail(userEmail);
 
-        if (account!=null)
-        {
-            String numePersoana = account.getDisplayName();
-            String emailPersoana = account.getEmail();
-//            name.setText(numePersoana);
-//            email.setText(emailPersoana);
-            //pe viitor daca vreau sa-mi afiseze numele cand ma loghez in aplicatie
-
+            buttonJoaca.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    Intent intent = new Intent(HomePage.this, ActivitateIntrebare.class);
+                    intent.putExtra("userEmail", userEmail);
+                    startActivity(intent);
+                }
+            });
         }
-
-        textViewLogout = findViewById(R.id.textViewLogout);
-
-        buttonJoaca.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(HomePage.this, ActivitateIntrebare.class);
-                startActivity(intent);
-            }
-        });
-
         textViewLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -89,6 +84,12 @@ public class HomePage extends AppCompatActivity {
                 startActivity(intent3);
             }
         });
+        buttonProvocare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent4 = new Intent(HomePage.this, ActivitateIntrebare.class);
+            }
+        });
 
 
     }
@@ -101,6 +102,14 @@ public class HomePage extends AppCompatActivity {
                 startActivity(new Intent(HomePage.this, MainActivity.class));
             }
         });
+    }
+
+    public void copyDatabase(){
+        try{
+            DatabaseCopyHelper helper = new DatabaseCopyHelper(HomePage.this);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
     }
 
 }

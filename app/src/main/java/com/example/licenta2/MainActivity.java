@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -19,9 +20,7 @@ import com.google.android.material.textfield.TextInputEditText;
 
 public class MainActivity extends AppCompatActivity {
 
-    private TextInputEditText editTextEmail, editTextPassword;
-    private Button buttonSignup, buttonLogin;
-    private TextView textViewForgotPass;
+    private ImageView imageViewGoogleIcon;
     BazaDate DB;
 
 
@@ -33,12 +32,11 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        DB = new BazaDate(this);
 
-        editTextEmail =findViewById(R.id.EmailText);
-        editTextPassword = findViewById(R.id.PasswordText);
-        buttonSignup = findViewById(R.id.buttonSignup);
-        buttonLogin = findViewById(R.id.buttonLoginin);
-        textViewForgotPass = findViewById(R.id.textForgotPass);
+        imageViewGoogleIcon = findViewById(R.id.imageViewGoogle);
+
+
 
         gso  = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN).requestEmail().build();
         gsc = GoogleSignIn.getClient(this, gso);
@@ -49,49 +47,10 @@ public class MainActivity extends AppCompatActivity {
 
         DB = new BazaDate(this);
 
-        buttonLogin.setOnClickListener(new View.OnClickListener() {
+        imageViewGoogleIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 signIn();
-//                String email = editTextEmail.getText().toString();
-//                String password = editTextPassword.getText().toString();
-
-//                if (email.equals("") && password.equals(""))
-//                {
-//                    Toast.makeText(MainActivity.this, "Va rugam completati toate.", Toast.LENGTH_SHORT).show();
-//                }
-//                else
-//                {
-//                    Boolean checkuserpass = DB.verificaUserEmailParola(email,password);
-//                    if (checkuserpass == true)
-//                    {
-//                        Toast.makeText(MainActivity.this, "Logare cu succes.", Toast.LENGTH_SHORT).show();
-//                        Intent intent = new Intent(getApplicationContext(), HomePage.class);
-//                        startActivity(intent);
-//                    }
-//                    else
-//                    {
-//                        Toast.makeText(MainActivity.this, "Email sau parola gresite", Toast.LENGTH_SHORT).show();
-//                    }
-//                }
-            }
-        });
-
-        buttonSignup.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
-                startActivity(intent);
-            }
-        });
-
-        textViewForgotPass.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                Intent intent = new Intent(getApplicationContext(), ParolaUitata.class);
-                startActivity(intent);
             }
         });
     }
@@ -113,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
                 navigateToHomePage();
                 task.getResult(ApiException.class);
             } catch (ApiException e) {
-                Toast.makeText(getApplicationContext(), "Ceva nu merge bine", Toast.LENGTH_SHORT);
+                Toast.makeText(getApplicationContext(), "Ceva nu merge bine", Toast.LENGTH_SHORT).show();
             }
 
         }
@@ -121,8 +80,14 @@ public class MainActivity extends AppCompatActivity {
 
     void navigateToHomePage()
         {
-            finish();
-            Intent intent = new Intent(MainActivity.this, HomePage.class);
-            startActivity(intent);  //pun aici functia pt ca sa o pot muta mai usor in clasa de login
+            GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
+            if(account != null) {
+
+                String googleAccountId = account.getId();
+                int userPoints = 0;
+                finish();
+                Intent intent = new Intent(MainActivity.this, HomePage.class);
+                startActivity(intent);
+            }
         }
 }
