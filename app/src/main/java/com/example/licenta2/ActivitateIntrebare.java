@@ -15,6 +15,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -32,7 +35,7 @@ public class ActivitateIntrebare extends AppCompatActivity  {
     Boolean timmer_runnig;
     long time_left_in_milis = START_TIMER_IN_MILS;
     int consecutiveCorrectAnswers = 0;
-    int score=0;
+
     int intrebareCompleta = IntrebariRaspunsuri.intrebare.length;
     int indexIntrebareCurenta;
     String raspunsSelectat = "";
@@ -42,12 +45,11 @@ public class ActivitateIntrebare extends AppCompatActivity  {
     int imageViewClickCount;
     Button invisibleButton = null;
 
+    BazaDateDAO dao = new BazaDateDAO(this);
 
-    private BazaDate databasehelper;
-//    GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-//    String googleAccountId = account.getId();
+    String userEmail = EmailClass.getUserEmail();
 
-
+    int score = 0;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -63,9 +65,8 @@ public class ActivitateIntrebare extends AppCompatActivity  {
         button3 = findViewById(R.id.buttonRaspuns3);
         button4 = findViewById(R.id.buttonRaspuns4);
         imageView = findViewById(R.id.imageViewHint);
-        databasehelper = new BazaDate(this);
-        String userEmail = getIntent().getStringExtra("userEmail");
-        score = databasehelper.withdrawPoints(userEmail);
+
+
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -91,7 +92,6 @@ public class ActivitateIntrebare extends AppCompatActivity  {
         button3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-
                 verificareRaspuns(button3);
             }
         });
@@ -113,10 +113,6 @@ public class ActivitateIntrebare extends AppCompatActivity  {
         super.onPause();
     }
 
-    private void savePointsAndAccount(String googleAccount, int points)
-    {
-
-    }
     private void handleImageViewClick(ImageView imageView) {
         imageViewClickCount++;
 
@@ -181,21 +177,22 @@ public class ActivitateIntrebare extends AppCompatActivity  {
 
     void verificareRaspuns(Button button)
     {
-        String userEmail = getIntent().getStringExtra("userEmail");
-        score = databasehelper.withdrawPoints(userEmail);
+        score=showPoints();
         String textButton = button.getText().toString();
        raspunsSelectat = IntrebariRaspunsuri.raspunsuriCorecte[randomIndex];
         if (textButton.equals(raspunsSelectat))
         {
             consecutiveCorrectAnswers++;
+            score++;
+            dao.updateUserPoints(userEmail,score);
+            correctResponses++;
+            dao.incrementUserCorrectAnswers(userEmail,correctResponses);
             if (consecutiveCorrectAnswers == 3){
                 score += 6;
                 consecutiveCorrectAnswers = 0;
                 Toast.makeText(this, "Felicitari! Ai primit 6 puncte bonus, deoarece ai raspuns corect la 3 intrebari consecutiv!", Toast.LENGTH_SHORT).show();
             }
-            correctResponses++;
             button.setBackgroundColor(Color.GREEN);
-            score++;
             pauseTimer();
             AlertDialog.Builder builder3 = new AlertDialog.Builder(ActivitateIntrebare.this);
             builder3.setTitle("FELICITARI! :)))");
@@ -215,19 +212,18 @@ public class ActivitateIntrebare extends AppCompatActivity  {
             builder3.setNegativeButton("NU", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    databasehelper.saveUserPoints(userEmail,score);
+                    dao.updateUserPoints(userEmail,score);
                     Intent intent = new Intent(ActivitateIntrebare.this, HomePage.class);
                     startActivity(intent);
                     finish();
                 }
             });
-
             builder3.create().show();
+
         }
         else
         {
-
-            consecutiveCorrectAnswers = 0;
+            score = showPoints();
             pauseTimer();
             button.setBackgroundColor(Color.RED);
             AlertDialog.Builder builder = new AlertDialog.Builder(ActivitateIntrebare.this);
@@ -242,6 +238,7 @@ public class ActivitateIntrebare extends AppCompatActivity  {
 
                     if(score>=2) {
                         score=score-2;
+                        dao.updateUserPoints(userEmail,score);
                         AlertDialog.Builder builder4 = new AlertDialog.Builder(ActivitateIntrebare.this);
                         builder4.setTitle("NU SPUNE LA NIMENI")
                                 .setMessage("Raspunsul corect este: " + raspunsComplet);
@@ -249,18 +246,15 @@ public class ActivitateIntrebare extends AppCompatActivity  {
                         builder4.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                databasehelper.saveUserPoints(userEmail, score);
                                 Intent intent = new Intent(ActivitateIntrebare.this, HomePage.class);
                                 startActivity(intent);
                                 finish();
                             }
                         });
-
                         builder4.create().show();
                     }
                     else
                     {
-                        databasehelper.saveUserPoints(userEmail, score);
                         Toast.makeText(getApplicationContext(), "Pentru a vedea raspunsul a nevoie de minim 2 puncte!", Toast.LENGTH_SHORT).show();
                         Intent intent = new Intent(ActivitateIntrebare.this, HomePage.class);
                         startActivity(intent);
@@ -274,7 +268,6 @@ public class ActivitateIntrebare extends AppCompatActivity  {
             builder.setNegativeButton("NU", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    databasehelper.saveUserPoints(userEmail, score);
                     Intent intent = new Intent(ActivitateIntrebare.this, HomePage.class);
                     startActivity(intent);
                     finish();
@@ -282,14 +275,14 @@ public class ActivitateIntrebare extends AppCompatActivity  {
             });
             builder.create().show();
         }
-        punctaj.setText("Punctaj "+score);
         totalAnswers++;
+        dao.incrementUserTotalAnswers(userEmail,totalAnswers);
+        punctaj.setText("Punctaj: "+score);
+       // displayPoints(score);
     }
 
     public void startTimer()
     {
-       // String userEmail = getIntent().getStringExtra("userEmail");
-       // score = databasehelper.withdrawPoints(userEmail);
         timer = new CountDownTimer(time_left_in_milis, 1000) {
             @Override
             public void onTick(long l) {
@@ -299,7 +292,6 @@ public class ActivitateIntrebare extends AppCompatActivity  {
 
             @Override
             public void onFinish() {
-               // databasehelper.saveUserPoints(userEmail, score);
                 AlertDialog.Builder builder5 = new AlertDialog.Builder(ActivitateIntrebare.this);
             builder5.setTitle("GAME OVER :(((");
             builder5.setCancelable(false);
@@ -333,6 +325,20 @@ public class ActivitateIntrebare extends AppCompatActivity  {
     {
         time_left_in_milis = START_TIMER_IN_MILS;
         updateText();
+    }
+
+    public int showPoints(){
+        dao.open();
+        score= dao.fetchUserPoints(userEmail);
+        return score;
+    }
+
+    public void displayPoints(int scoreResult){
+        dao.open();
+        int score1 = dao.fetchUserPoints(userEmail);
+        dao.close();
+        scoreResult =+score1;
+        punctaj.setText("Punctaj: " + String.valueOf(scoreResult));
     }
 
 }

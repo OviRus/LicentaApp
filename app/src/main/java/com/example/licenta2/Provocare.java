@@ -38,10 +38,6 @@ public class Provocare extends AppCompatActivity {
     Random random = new Random();
     int randomIndex;
 
-
-
-    private BazaDate databasehelper;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -55,9 +51,7 @@ public class Provocare extends AppCompatActivity {
         button3 = findViewById(R.id.buttonRaspuns3);
         button4 = findViewById(R.id.buttonRaspuns4);
         imageView = findViewById(R.id.imageViewHint);
-        databasehelper = new BazaDate(this);
         String userEmail = getIntent().getStringExtra("userEmail");
-        score = databasehelper.withdrawPoints(userEmail);
         imageView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -128,7 +122,6 @@ public class Provocare extends AppCompatActivity {
     void verificareRaspuns(Button button)
     {
         String userEmail = getIntent().getStringExtra("userEmail");
-        score = databasehelper.withdrawPoints(userEmail);
         String textButton = button.getText().toString();
         raspunsSelectat = IntrebariRaspunsuri.raspunsuriCorecteProvocare[randomIndex];
         if (textButton.equals(raspunsSelectat))
@@ -156,7 +149,6 @@ public class Provocare extends AppCompatActivity {
             builder3.setNegativeButton("NU", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    databasehelper.saveUserPoints(userEmail,score);
                     Intent intent = new Intent(Provocare.this, HomePage.class);
                     startActivity(intent);
                     finish();
@@ -186,7 +178,6 @@ public class Provocare extends AppCompatActivity {
                         builder4.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                databasehelper.saveUserPoints(userEmail, score);
                                 Intent intent = new Intent(Provocare.this, HomePage.class);
                                 startActivity(intent);
                                 finish();
@@ -199,7 +190,6 @@ public class Provocare extends AppCompatActivity {
             builder.setNegativeButton("NU", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialogInterface, int i) {
-                    databasehelper.saveUserPoints(userEmail, score);
                     Intent intent = new Intent(Provocare.this, HomePage.class);
                     startActivity(intent);
                     finish();

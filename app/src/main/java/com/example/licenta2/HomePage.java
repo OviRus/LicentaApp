@@ -32,7 +32,6 @@ public class HomePage extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home_page);
 
-        copyDatabase();
         buttonJoaca = findViewById(R.id.buttonJoaca);
         buttonProvocare = findViewById(R.id.buttonAlteJocuri);
 
@@ -49,19 +48,14 @@ public class HomePage extends AppCompatActivity {
         BazaDate bazaDeDate = new BazaDate(HomePage.this);
 
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if (account != null) {
-            String userEmail = account.getEmail();
-            bazaDeDate.saveUserEmail(userEmail);
-
             buttonJoaca.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     Intent intent = new Intent(HomePage.this, ActivitateIntrebare.class);
-                    intent.putExtra("userEmail", userEmail);
                     startActivity(intent);
                 }
             });
-        }
+
         textViewLogout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -87,7 +81,15 @@ public class HomePage extends AppCompatActivity {
         buttonProvocare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent4 = new Intent(HomePage.this, ActivitateIntrebare.class);
+                Intent intent4 = new Intent(HomePage.this, Provocare.class);
+                startActivity(intent4);
+            }
+        });
+
+        buttonAlteJocuri.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
             }
         });
 
@@ -103,13 +105,4 @@ public class HomePage extends AppCompatActivity {
             }
         });
     }
-
-    public void copyDatabase(){
-        try{
-            DatabaseCopyHelper helper = new DatabaseCopyHelper(HomePage.this);
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-
 }

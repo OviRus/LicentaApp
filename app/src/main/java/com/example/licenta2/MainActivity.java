@@ -2,7 +2,9 @@ package com.example.licenta2;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.database.Cursor;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -21,18 +23,16 @@ import com.google.android.material.textfield.TextInputEditText;
 public class MainActivity extends AppCompatActivity {
 
     private ImageView imageViewGoogleIcon;
-    BazaDate DB;
-
-
     GoogleSignInOptions gso;
     GoogleSignInClient gsc;
+    private String userEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DB = new BazaDate(this);
+
 
         imageViewGoogleIcon = findViewById(R.id.imageViewGoogle);
 
@@ -42,10 +42,6 @@ public class MainActivity extends AppCompatActivity {
         gsc = GoogleSignIn.getClient(this, gso);
 
         GoogleSignInAccount account = GoogleSignIn.getLastSignedInAccount(this);
-        if (account!=null)
-            navigateToHomePage();
-
-        DB = new BazaDate(this);
 
         imageViewGoogleIcon.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -62,19 +58,53 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data)
-    {
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == 1000)
-        {
+        if (requestCode == 1000) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             try {
-                navigateToHomePage();
-                task.getResult(ApiException.class);
+                GoogleSignInAccount account = task.getResult(ApiException.class);
+                if (account != null) {
+                    String googleAccountId = account.getId();
+                    userEmail = account.getEmail();
+                    EmailClass.setUserEmail(userEmail);
+                    int userPoints = 0;
+
+                    // Check if the user already exists in the database
+                    BazaDateDAO dao = new BazaDateDAO(getApplicationContext());
+                    dao.open();
+                    Cursor cursor = dao.getAllUsers();
+                    boolean userExists = false;
+                    while (cursor.moveToNext()) {
+                        @SuppressLint("Range") String existingUserEmail = cursor.getString(cursor.getColumnIndex("userEmail"));
+                        if (existingUserEmail.equals(userEmail)) {
+                            userExists = true;
+                            break;
+                        }
+                    }
+                    cursor.close();
+                    dao.close();
+
+                    if (!userExists) {
+                        // User doesn't exist, insert into the database
+                        dao.open();
+                        dao.addUser(userEmail, userPoints, 0, 0); // Assuming totalQuestions and wrong are initially set to 0
+                        dao.close();
+
+                        Toast.makeText(getApplicationContext(), "User added to the database", Toast.LENGTH_SHORT).show();
+                        Intent intent = new Intent(MainActivity.this, HomePage.class);
+                        startActivity(intent);
+                        finish();
+                    }
+
+                    navigateToHomePage();
+                }
             } catch (ApiException e) {
                 Toast.makeText(getApplicationContext(), "Ceva nu merge bine", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(MainActivity.this, HomePage.class);
+                startActivity(intent);
+                finish();
             }
-
         }
     }
 
